@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 class FraudRequest(BaseModel):
-    amount_usd: int
+    amount_usd: float
     transaction_dy: int
     transaction_hr: int
     transaction_min: int

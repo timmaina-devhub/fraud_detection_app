@@ -39,6 +39,8 @@ class FraudService():
             'device_type': request.device_type
         }
         
+        data_dict['device_type']=data_dict['device_type'].lower()
+        
         #encoding the device type using one-hot encoding
         data_dict['device_type_desktop'] = 1 if request.device_type == 'desktop' else 0
         data_dict['device_type_mobile'] = 1 if request.device_type == 'mobile' else 0
