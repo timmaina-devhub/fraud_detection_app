@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 
 class FraudRequest(BaseModel):
     amount_usd: float
@@ -10,3 +11,11 @@ class FraudRequest(BaseModel):
 
 class FraudResponse(BaseModel):
     is_fraud: int
+
+
+class BatchFraudRequest(BaseModel):
+    customers: List[FraudRequest]
+
+
+class BatchFraudResponse(BaseModel):
+    predictions: List[FraudResponse]

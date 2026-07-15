@@ -28,7 +28,10 @@ class FraudService():
             artifact = joblib.load(model_file)
             
         return artifact
-      
+    
+     # -----------------------------
+    # Single customer preprocessing
+    # -----------------------------
     def preprocess(self, request: FraudRequest) -> pd.DataFrame:
         data_dict = {
             'amount_usd': request.amount_usd,
@@ -52,15 +55,66 @@ class FraudService():
 
         return data
     
-    def predict_fraud(self, request: FraudRequest) -> FraudResponse:
-        # Convert the request to a DataFrame
+
+    # -----------------------------
+    # Batch preprocessing
+    # -----------------------------
+    def preprocess_batch(
+        self,
+        requests: list[FraudRequest]
+    ) -> pd.DataFrame:
+
+        data = pd.DataFrame([
+            {
+                "amount_usd": r.amount_usd,
+                "transaction_dy": r.transaction_dy,
+                "transaction_hr": r.transaction_hr,
+                "transaction_min": r.transaction_min,
+                "transaction_sec": r.transaction_sec,
+                "device_type": r.device_type
+            }
+            for r in requests
+        ])
+        
+        data=pd.get_dummies(data, columns=['device_type'], drop_first=False)
+        data=data.drop(columns=['device_type'])
+           
+        return data
+
+    # -----------------------------
+    # Single prediction
+    # -----------------------------
+    def predict_fraud(
+        self,
+        request: FraudRequest
+    ) -> FraudResponse:
+
         data = self.preprocess(request)
+
+        prediction = self.model.predict(data)[0]
+
+        return FraudResponse(
+            is_fraud=int(prediction)
+        )
+
+    # -----------------------------
+    # Batch prediction
+    # -----------------------------
+    def predict_fraud_batch(
+        self,
+        requests: list[FraudRequest]
+    ) -> list[FraudResponse]:
+
+        data = self.preprocess_batch(requests)
+
+        predictions = self.model.predict(data)
+
+        return [
+            FraudResponse(is_fraud=int(pred))
+            for pred in predictions
+        ]
         
-        # Predict fraud
-        fraud_prediction = self.model.predict(data)[0]
-        
-        response = FraudResponse(is_fraud=int(fraud_prediction))
-        return response
+
 
 #test the service    
 #if __name__ == "__main__":
