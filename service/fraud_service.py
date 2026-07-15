@@ -59,6 +59,8 @@ class FraudService():
     # -----------------------------
     # Batch preprocessing
     # -----------------------------
+    
+    
     def preprocess_batch(
         self,
         requests: list[FraudRequest]
@@ -75,11 +77,28 @@ class FraudService():
             }
             for r in requests
         ])
+
+         # Normalize text
+        data["device_type"] = data["device_type"].str.lower().str.strip()
+
+        # One-hot encode
+        data["device_type_desktop"] = (
+            data["device_type"] == "desktop"
+        ).astype(int)
+
+        data["device_type_mobile"] = (
+            data["device_type"] == "mobile"
+        ).astype(int)
+
+        data["device_type_tablet"] = (
+            data["device_type"] == "tablet"
+        ).astype(int)
+
+        # Drop original categorical column
+        data.drop(columns=["device_type"], inplace=True)
         
-        data=pd.get_dummies(data, columns=['device_type'], drop_first=False)
-        data=data.drop(columns=['device_type'])
-           
         return data
+
 
     # -----------------------------
     # Single prediction
